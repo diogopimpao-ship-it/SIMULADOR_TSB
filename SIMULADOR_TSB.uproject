@@ -1,0 +1,41 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.3",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "SIMULADOR_TSB",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "SunPosition",
+			"Enabled": true
+		},
+		{
+			"Name": "GeoReferencing",
+			"Enabled": true
+		},
+		{
+			"Name": "Water",
+			"Enabled": true
+		},
+		{
+			"Name": "WaterExtras",
+			"Enabled": true
+		}
+	]
+}
