@@ -1,3 +1,5 @@
+When running the program, ensure that you change the WSL IP to the one specific to your computer; otherwise, the ROS 2 implementation won't work.
+
 OTTER Marine Simulator
 
 
