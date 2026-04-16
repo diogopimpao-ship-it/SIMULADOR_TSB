@@ -1,0 +1,16 @@
+package.xml
+setup.cfg
+setup.py
+../../build/boat_bridge/boat_bridge.egg-info/PKG-INFO
+../../build/boat_bridge/boat_bridge.egg-info/SOURCES.txt
+../../build/boat_bridge/boat_bridge.egg-info/dependency_links.txt
+../../build/boat_bridge/boat_bridge.egg-info/entry_points.txt
+../../build/boat_bridge/boat_bridge.egg-info/requires.txt
+../../build/boat_bridge/boat_bridge.egg-info/top_level.txt
+../../build/boat_bridge/boat_bridge.egg-info/zip-safe
+boat_bridge/__init__.py
+boat_bridge/udp_receiver.py
+resource/boat_bridge
+test/test_copyright.py
+test/test_flake8.py
+test/test_pep257.py

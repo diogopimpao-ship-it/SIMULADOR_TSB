@@ -7,6 +7,7 @@
 
 UOtter_ROS2UEConnector::UOtter_ROS2UEConnector()
 {
+	// Este componente não precisa de Tick.
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
@@ -14,8 +15,10 @@ void UOtter_ROS2UEConnector::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Inicializa o socket UDP para envio de mensagens.
 	InitializeSocket();
 
+	// Arranca automaticamente o ROS 2, se essa opção estiver ativa.
 	if (bAutoStartROS2OnPlay)
 	{
 		StartROS2OnPlay();
@@ -24,6 +27,7 @@ void UOtter_ROS2UEConnector::BeginPlay()
 
 void UOtter_ROS2UEConnector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	// Termina o processo ROS 2 e fecha o socket ao sair do jogo.
 	StopROS2OnPlay();
 	CloseSocket();
 
@@ -32,6 +36,7 @@ void UOtter_ROS2UEConnector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool UOtter_ROS2UEConnector::InitializeSocket()
 {
+	// Reutiliza o socket existente, se já tiver sido criado.
 	if (UdpSocket)
 	{
 		return true;
@@ -51,6 +56,7 @@ bool UOtter_ROS2UEConnector::InitializeSocket()
 
 void UOtter_ROS2UEConnector::CloseSocket()
 {
+	// Fecha e liberta o socket UDP.
 	if (UdpSocket)
 	{
 		UdpSocket->Close();
@@ -61,11 +67,13 @@ void UOtter_ROS2UEConnector::CloseSocket()
 
 bool UOtter_ROS2UEConnector::SendString(const FString& Message)
 {
+	// Não envia dados se o envio estiver desativado.
 	if (!bEnableSending)
 	{
 		return false;
 	}
 
+	// Garante que o socket existe antes de enviar.
 	if (!UdpSocket && !InitializeSocket())
 	{
 		return false;
@@ -76,6 +84,7 @@ bool UOtter_ROS2UEConnector::SendString(const FString& Message)
 	Addr->SetIp(*TargetIp, bIsValidIp);
 	Addr->SetPort(TargetPort);
 
+	// Valida o IP de destino.
 	if (!bIsValidIp)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ROS2UEConnector: invalid target IP = %s"), *TargetIp);
@@ -85,6 +94,7 @@ bool UOtter_ROS2UEConnector::SendString(const FString& Message)
 	FTCHARToUTF8 Converter(*Message);
 	int32 BytesSent = 0;
 
+	// Envia a mensagem em formato UTF-8 por UDP.
 	const bool bSent = UdpSocket->SendTo(
 		reinterpret_cast<const uint8*>(Converter.Get()),
 		Converter.Length(),
@@ -103,6 +113,7 @@ bool UOtter_ROS2UEConnector::SendString(const FString& Message)
 
 void UOtter_ROS2UEConnector::SendGPS(float X_m, float Y_m, bool bValid)
 {
+	// Serializa os dados do GPS em JSON e envia por UDP.
 	const FString JsonMessage = FString::Printf(
 		TEXT("{\"type\":\"gps\",\"x\":%.6f,\"y\":%.6f,\"valid\":%s}"),
 		X_m,
@@ -121,6 +132,7 @@ void UOtter_ROS2UEConnector::SendAHRS(
 	bool bValid
 )
 {
+	// Serializa os dados do AHRS em JSON e envia por UDP.
 	const FString JsonMessage = FString::Printf(
 		TEXT("{\"type\":\"ahrs\",\"yaw\":%.6f,\"yaw_rate\":%.6f,\"ax\":%.6f,\"ay\":%.6f,\"valid\":%s}"),
 		Yaw_rad,
@@ -143,6 +155,7 @@ void UOtter_ROS2UEConnector::SendLiDAR(
 	bool bValid
 )
 {
+	// Garante que todos os vetores têm o mesmo número de beams.
 	if (AnglesDeg.Num() != Distances_m.Num() ||
 		AnglesDeg.Num() != Hits.Num() ||
 		AnglesDeg.Num() != Dropped.Num())
@@ -153,6 +166,7 @@ void UOtter_ROS2UEConnector::SendLiDAR(
 
 	FString BeamsJson = TEXT("[");
 
+	// Serializa cada beam do LiDAR para JSON.
 	for (int32 i = 0; i < AnglesDeg.Num(); ++i)
 	{
 		BeamsJson += FString::Printf(
@@ -171,6 +185,7 @@ void UOtter_ROS2UEConnector::SendLiDAR(
 
 	BeamsJson += TEXT("]");
 
+	// Envia o scan completo do LiDAR em formato JSON.
 	const FString JsonMessage = FString::Printf(
 		TEXT("{\"type\":\"lidar\",\"range_min\":%.6f,\"range_max\":%.6f,\"valid\":%s,\"beams\":%s}"),
 		RangeMin_m,
@@ -181,27 +196,31 @@ void UOtter_ROS2UEConnector::SendLiDAR(
 
 	SendString(JsonMessage);
 }
+
 void UOtter_ROS2UEConnector::StartROS2OnPlay()
 {
+	// Evita arrancar mais do que um processo ROS 2 em simultâneo.
 	if (ROS2ProcessHandle.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ROS2 already running."));
 		return;
 	}
 
+	// Obtém a pasta do projeto no Windows.
 	const FString ProjectDirWin = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
-	const FString RootDirWin = FPaths::ConvertRelativePathToFull(FPaths::Combine(ProjectDirWin, TEXT("..")));
 
-	FString RootDirWsl = RootDirWin;
-	RootDirWsl.ReplaceInline(TEXT("\\"), TEXT("/"));
+	// Converte o caminho do projeto para formato compatível com WSL.
+	FString ProjectDirWsl = ProjectDirWin;
+	ProjectDirWsl.ReplaceInline(TEXT("\\"), TEXT("/"));
 
-	if (RootDirWsl.Len() > 2 && RootDirWsl[1] == ':')
+	if (ProjectDirWsl.Len() > 2 && ProjectDirWsl[1] == ':')
 	{
-		const TCHAR DriveLetter = FChar::ToLower(RootDirWsl[0]);
-		RootDirWsl = FString::Printf(TEXT("/mnt/%c%s"), DriveLetter, *RootDirWsl.Mid(2));
+		const TCHAR DriveLetter = FChar::ToLower(ProjectDirWsl[0]);
+		ProjectDirWsl = FString::Printf(TEXT("/mnt/%c%s"), DriveLetter, *ProjectDirWsl.Mid(2));
 	}
 
-	const FString ScriptPathWsl = RootDirWsl / TEXT("ros2_ws/start_ros2_demo.sh");
+	// O script é procurado dentro da pasta do projeto: SIMULADOR_TSB/ros2_ws/
+	const FString ScriptPathWsl = ProjectDirWsl / TEXT("ros2_ws/start_ros2_demo.sh");
 
 	const FString Program = TEXT("wsl.exe");
 	const FString Args = FString::Printf(
@@ -212,6 +231,7 @@ void UOtter_ROS2UEConnector::StartROS2OnPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("Launching ROS2 with: %s %s"), *Program, *Args);
 
+	// Arranca o script ROS 2 no WSL.
 	ROS2ProcessHandle = FPlatformProcess::CreateProc(
 		*Program,
 		*Args,
@@ -236,6 +256,7 @@ void UOtter_ROS2UEConnector::StartROS2OnPlay()
 
 void UOtter_ROS2UEConnector::StopROS2OnPlay()
 {
+	// Termina o processo ROS 2 iniciado no BeginPlay.
 	if (ROS2ProcessHandle.IsValid())
 	{
 		FPlatformProcess::TerminateProc(ROS2ProcessHandle, true);

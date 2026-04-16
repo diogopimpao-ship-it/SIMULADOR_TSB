@@ -1,0 +1,21 @@
+[0.511s] Invoking command in '/home/pimpas/ros2_ws/src/boat_bridge': PYTHONPATH=/home/pimpas/ros2_ws/build/boat_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pimpas/ros2_ws/install/boat_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/boat_bridge build --build-base /home/pimpas/ros2_ws/build/boat_bridge/build install --record /home/pimpas/ros2_ws/build/boat_bridge/install.log --single-version-externally-managed install_data
+[0.677s] running egg_info
+[0.678s] writing ../../build/boat_bridge/boat_bridge.egg-info/PKG-INFO
+[0.678s] writing dependency_links to ../../build/boat_bridge/boat_bridge.egg-info/dependency_links.txt
+[0.678s] writing entry points to ../../build/boat_bridge/boat_bridge.egg-info/entry_points.txt
+[0.678s] writing requirements to ../../build/boat_bridge/boat_bridge.egg-info/requires.txt
+[0.678s] writing top-level names to ../../build/boat_bridge/boat_bridge.egg-info/top_level.txt
+[0.680s] reading manifest file '../../build/boat_bridge/boat_bridge.egg-info/SOURCES.txt'
+[0.680s] writing manifest file '../../build/boat_bridge/boat_bridge.egg-info/SOURCES.txt'
+[0.681s] running build
+[0.681s] running build_py
+[0.681s] running install
+[0.681s] running install_lib
+[0.683s] running install_data
+[0.683s] running install_egg_info
+[0.685s] removing '/home/pimpas/ros2_ws/install/boat_bridge/lib/python3.10/site-packages/boat_bridge-0.0.0-py3.10.egg-info' (and everything under it)
+[0.686s] Copying ../../build/boat_bridge/boat_bridge.egg-info to /home/pimpas/ros2_ws/install/boat_bridge/lib/python3.10/site-packages/boat_bridge-0.0.0-py3.10.egg-info
+[0.686s] running install_scripts
+[0.702s] Installing udp_receiver script to /home/pimpas/ros2_ws/install/boat_bridge/lib/boat_bridge
+[0.703s] writing list of installed files to '/home/pimpas/ros2_ws/build/boat_bridge/install.log'
+[0.725s] Invoked command in '/home/pimpas/ros2_ws/src/boat_bridge' returned '0': PYTHONPATH=/home/pimpas/ros2_ws/build/boat_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pimpas/ros2_ws/install/boat_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/boat_bridge build --build-base /home/pimpas/ros2_ws/build/boat_bridge/build install --record /home/pimpas/ros2_ws/build/boat_bridge/install.log --single-version-externally-managed install_data
