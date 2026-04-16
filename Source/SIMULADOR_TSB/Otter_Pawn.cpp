@@ -1626,7 +1626,7 @@
 
 		EtaX_m += Xdot * Dt;
 		EtaY_m += Ydot * Dt;
-		EtaZ_m += Zdot * Dt;
+		//EtaZ_m += Zdot * Dt;
 		EtaPhi_rad += PhiDot * Dt;
 		EtaTheta_rad += ThetaDot * Dt;
 		EtaPsi_rad += PsiDot * Dt;
