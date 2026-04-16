@@ -22,6 +22,7 @@
 		RootComponent = HullMesh;
 		HullMesh->SetMobility(EComponentMobility::Movable);
 
+		// A física do Unreal é desativada porque a dinâmica é integrada pelo modelo próprio.
 		HullMesh->SetSimulatePhysics(false);
 		HullMesh->SetEnableGravity(false);
 		HullMesh->SetLinearDamping(0.0f);
@@ -70,7 +71,8 @@
 			UE_LOG(LogTemp, Error, TEXT("SensorMesh is null or has no StaticMesh assigned."));
 		}
 
-		// Inicializa o estado a partir do transform atual do ator
+		// Converte a pose inicial do ator para o estado interno do modelo.
+		// O Unreal usa centímetros; o modelo interno usa metros e radianos.	
 		const FVector StartLocation_cm = GetActorLocation();
 		const FRotator StartRotation_deg = GetActorRotation();
 
@@ -84,7 +86,7 @@
 		NuV_mps = 0.0f;
 		NuR_radps = 0.0f;
 
-		//6dof
+		// Inicializa os estados adicionais usados no modelo 6DOF.		
 		bUse6DOF = true;
 		EtaZ_m = 0.0f;
 		EtaPhi_rad = 0.0f;
@@ -95,7 +97,7 @@
 
 		TimeAccumulator = 0.0f;
 
-		// começar o GPS
+		// Inicializa o estado do GPS, incluindo bias, fila de publicação e última amostra válida.		
 		GPSMeasuredX_m = EtaX_m;
 		GPSMeasuredY_m = EtaY_m;
 		GPSLastHealthyX_m = EtaX_m;
@@ -114,7 +116,7 @@
 		GPSUpdateAccumulator = 0.0f;
 		GPSPendingSamples.Empty();
 
-		// Iniciar o AHRS
+		// Inicializa o estado do AHRS, incluindo bias, yaw estimado e fila de publicação.		
 		AHRSMeasuredYaw_rad = EtaPsi_rad;
 		AHRSMeasuredYawRate_radps = NuR_radps;
 		AHRSMeasuredSpecificForceX_mps2 = 0.0f;
@@ -137,7 +139,7 @@
 
 		AHRSPendingSamples.Empty();
 
-		//GPS, o erro estava muito alto
+		// Parâmetros finais de ruído e falha do GPS após ajuste da simulação.		
 		GPSPosSigma_m = 0.10f;
 		GPSDegradedPosSigma_m = 0.50f;
 		GPSBiasWalkSigma_mps = 0.001f;
@@ -152,7 +154,7 @@
 		GPSFailureDurationMin_s = 1.0f;
 		GPSFailureDurationMax_s = 2.0f;
 
-		// Iniciar o LiDAR
+		// Inicializa o estado do LiDAR, scan anterior válido e fila de publicação.		
 		bLiDARValid = true;
 		LiDARHealth = ELiDARHealth::Healthy;
 		LiDARLastPublishedTime_s = 0.0f;
@@ -179,7 +181,7 @@
 
 		SimulationTime_s += DeltaTime;
 
-		// Acumulador para passo fixo
+		// Acumula tempo para avançar a dinâmica com subpassos de integração fixos.		
 		TimeAccumulator += DeltaTime;
 
 		int32 NumSteps = 0;
@@ -357,7 +359,7 @@
 			Z_cm
 		);
 
-		// Unreal: FRotator(Pitch, Yaw, Roll) -> mapeia para (θ, ψ, φ)
+		// correspondente aqui a (theta, psi, phi).
 		const FRotator NewRotation_deg(
 			bUse6DOF ? FMath::RadiansToDegrees(EtaTheta_rad) : 0.0f,
 			FMath::RadiansToDegrees(EtaPsi_rad),
@@ -367,7 +369,7 @@
 		SetActorLocationAndRotation(NewLocation_cm, NewRotation_deg,
 			false, nullptr, ETeleportType::TeleportPhysics);
 	}
-
+	// Interpolação linear 1D usada para consultar tabelas discretas.
 	float AOtter_Pawn::Interpolate1D(const float* X, const float* Y, int32 Count, float QueryX) const
 	{
 		if (X == nullptr || Y == nullptr || Count < 2)
@@ -410,7 +412,8 @@
 	}
 
 
-	//Função para os motores
+	// Calcula o impulso produzido por um thruster T200 a partir da corrente comandada.
+	// Usa tabelas distintas para avanço e marcha-atrás.
 	float AOtter_Pawn::CalculateT200Thrust(float CurrentAmps) const
 	{
 		static const float CurrentAxis_A[] =
